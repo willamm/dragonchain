@@ -1,4 +1,4 @@
-version: '2'
+version: '2.1'
 services:
   db:
     build:
@@ -6,6 +6,11 @@ services:
       context: ../
     ports:
       - "5432:5432"
+    healthcheck:
+      test: curl -f https://localhost:5432 || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 3
 
   query_svc:
     build:
@@ -14,7 +19,8 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - db
+        db:
+          condition: service_healthy
     environment:
       - BLOCKCHAIN_DB_HOSTNAME=db
     volumes:
